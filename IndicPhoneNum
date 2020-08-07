@@ -1,0 +1,64 @@
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+
+Path = "/usr/bin/firefox"
+driver = webdriver.Firefox(executable_path='./geckodriver')
+web = "https://fr.wikipedia.org/wiki/Liste_des_indicatifs_t%C3%A9l%C3%A9phoniques_internationaux_par_indicatif"
+req = requests.get(web)
+sp = BeautifulSoup(req.text, 'html.parser')
+
+def Driver():
+    driver.set_window_size(900,900)
+    driver.get(web)
+
+def Infos():
+    Zones = []
+    Paragaphes = []
+
+    for Tt in sp.findAll('h3'):
+        Zn = Tt.text
+        Zones.append(Zn)
+        #print(Zones)
+        #print(Zn)
+
+    for dv in sp.findAll('div', attrs={'id':'bodyContent'}):
+        Div = dv
+
+        for AllP in Div('p'):
+            Allprgph = AllP.text
+            #print(Allprgph)
+            Paragaphes.append(Allprgph)
+    #print(Paragaphes)
+    #print(Zones)
+    #dfz = pd.DataFrame(list(Zones),columns=['Zones'])
+    #print(dfz)
+
+    dfp = pd.DataFrame(list(Paragaphes),columns=['All Paragraphes'])
+    dfp.to_csv('InfoZones.csv', index=False, encoding='utf-8', sep="\n")
+    print(dfp)
+
+def Indicateurs_tel():
+
+    for tb in sp.findAll('tr', attrs={'valign':'top'}):
+        Table= tb
+
+        Pays =[]
+        IndicTels =[]
+        for InducT in sp.findAll('td', attrs={'align':'right'}):
+            ITel = InducT.text
+            #print(ITel)
+            IndicTels.append(ITel)
+
+        for Ps in sp.findAll('span', attrs={'class':'datasortkey'}):
+            PsI = Ps.text
+            #print(PsI)
+            Pays.append(PsI)
+
+        df = pd.DataFrame(list(zip(IndicTels,Pays)), columns=['Indicateurs téléphonique','Pays'])
+        df.to_csv('Resultat.csv', index=False, encoding='utf-8')
+        #print(Pays)
+Infos()
+Indicateurs_tel()
+Driver()
